@@ -23,7 +23,6 @@ function sendMail($to, $subject, $body) {
         $mail->Body = $body;
 
         $mail->send();
-        header("Location: ../public/verify2fa.php?email=" . urlencode($to));
         exit;
 
     } catch (Exception $e) {
