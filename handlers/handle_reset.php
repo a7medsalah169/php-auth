@@ -1,48 +1,39 @@
 <?php
-// handlers/handle_reset.php
+include '../config/db.php';
 
-require_once '../config/db.php';
+$email = $_POST['email'];
+$pass = $_POST['password'];
+$confirm = $_POST['confirm_password'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token = $_POST['token'] ?? '';
-    $new_password = $_POST['new_password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-
-    if (empty($token) || empty($new_password) || empty($confirm_password)) {
-        die('All fields are required.');
-    }
-
-    if ($new_password !== $confirm_password) {
-        die('Passwords do not match.');
-    }
-
-    // Check if token is valid and not expired
-    $stmt = $conn->prepare("SELECT id, token_expire FROM users WHERE token = ?");
-    $stmt->bind_param("s", $token);
-    $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows === 0) {
-        die('Invalid or expired token.');
-    }
-
-    $stmt->bind_result($user_id, $expires_at);
-    $stmt->fetch();
-
-    if (strtotime($expires_at) < time()) {
-        die('Token has expired.');
-    }
-
-    // Hash the new password
-    $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-
-    // Update user's password and clear token fields
-    $stmt = $conn->prepare("UPDATE users SET password = ?, token = NULL, token_expire = NULL WHERE id = ?");
-    $stmt->bind_param("si", $hashed_password, $user_id);
-    $stmt->execute();
-
-    echo "Password has been reset successfully. You can now <a href='/public/index.php'>login</a>.";
-} else {
-    http_response_code(405);
-    echo "Method not allowed.";
+// Check if any of the fields are empty
+if (empty($email) || empty($pass) || empty($confirm)) {
+    http_response_code(400); // Bad Request
+    echo json_encode(["message" => "All fields are required."]);
+    exit;
 }
+
+// Check if passwords match
+if ($pass !== $confirm) {
+    http_response_code(400); // Bad Request
+    echo json_encode(["message" => "Passwords do not match."]);
+    exit;
+}
+
+// Hash the new password
+$hashed = password_hash($pass, PASSWORD_BCRYPT);
+
+// Prepare SQL to update password
+$stmt = $conn->prepare("UPDATE users SET password = ?, reset_code = NULL, reset_code_expire = NULL WHERE email = ?");
+$stmt->bind_param("ss", $hashed, $email);
+
+// Execute the query
+if ($stmt->execute()) {
+    http_response_code(200); // OK
+    echo json_encode(["message" => "Password has been updated. <a href='../index.php'>Login here</a>"]);
+    header("Location: ../public/index.php");
+    exit;
+} else {
+    http_response_code(500); // Internal Server Error
+    echo json_encode(["message" => "There was an error updating your password. Please try again."]);
+}
+?>

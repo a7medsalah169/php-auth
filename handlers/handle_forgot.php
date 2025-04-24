@@ -5,7 +5,8 @@ $email = $_POST['email'];
 
 // Validate email format
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    echo "Invalid email format.";
+    http_response_code(400); // Bad Request
+    echo json_encode(["message" => "Invalid email format."]);
     exit;
 }
 
@@ -17,7 +18,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    echo "No account found with that email.";
+    http_response_code(404); // Not Found
+    echo json_encode(["message" => "No account found with that email."]);
     exit;
 }
 
@@ -40,9 +42,12 @@ $subject = "Password Reset Code";
 $message = "Your password reset code is: $reset_code";
 
 if (sendMail($email, $subject, $message)) {
+    http_response_code(200); // OK
+    echo json_encode(["message" => "Reset code sent successfully. Please check your email."]);
     header("Location: ../verify2fa.php?email=" . urlencode($email));
     exit;
 } else {
-    echo "Error sending the reset code. Please try again.";
+    http_response_code(500); // Internal Server Error
+    echo json_encode(["message" => "Error sending the reset code. Please try again."]);
 }
 ?>

@@ -9,7 +9,7 @@
         <?php $email = $_GET['email'] ?? ''; ?>
 
         <h2>Set a New Password</h2>
-        <form method="POST" action="../handlers/update_password.php">
+        <form method="POST" action="../handlers/handle_reset.php">
             <input type="hidden" name="email" value="<?= htmlspecialchars($email) ?>">
             <input type="password" name="password" placeholder="New Password" required>
             <input type="password" name="confirm_password" placeholder="Confirm Password" required>
