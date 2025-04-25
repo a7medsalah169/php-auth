@@ -4,3 +4,4 @@
 composer.lock
 /vendor
 ENDPOINTS_STATUS_CODES_SUMMARY.md
+/.vscode
