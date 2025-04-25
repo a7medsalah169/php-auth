@@ -44,7 +44,7 @@ $message = "Your password reset code is: $reset_code";
 if (sendMail($email, $subject, $message)) {
     http_response_code(200); // OK
     echo json_encode(["message" => "Reset code sent successfully. Please check your email."]);
-    header("Location: ../verify2fa.php?email=" . urlencode($email));
+    header("Location: ../public/verify2fa.php?email=" . urlencode($email));
     exit;
 } else {
     http_response_code(500); // Internal Server Error
